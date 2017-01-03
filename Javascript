@@ -1,0 +1,37 @@
+$(function () {
+
+    var $dTable = $('#logTable').DataTable({
+        "bStateSave": true,
+        "sDom": '<"top"lpf<"clear">>rt<"bottom"lp<"clear">>',
+        "aaSorting": [[0, 'desc']]
+
+    });
+    $("#logTable").css('visibility', 'visible');
+    $(".dateControlBlock").css('visibility', 'visible');
+
+    $("#updateDate").click(function () {
+        var start = $("#dateStart").val();
+        var end = $("#dateEnd").val();
+
+
+        if (window.location.href.indexOf("?") < 0) {
+            window.location.href = window.location.href + "?c=" + start + "d" + end;
+        }
+        else {
+            window.location.href = replaceUrlParam(window.location.href, "c", start + "d" + end)
+        }
+    });
+
+    $('.datepicker').datepicker().on('changeDate', function () {
+        $(".dropdown-menu").hide();
+    });
+
+});
+
+    function replaceUrlParam(url, paramName, paramValue) {
+        var pattern = new RegExp('\\b(' + paramName + '=).*?(&|$)')
+        if (url.search(pattern) >= 0) {
+            return url.replace(pattern, '$1' + paramValue + '$2');
+        }
+        return url + (url.indexOf('?') > 0 ? '&' : '?') + paramName + '=' + paramValue
+    }
