@@ -1,0 +1,67 @@
+ public ActionResult Logging()
+        {
+            DataContext db = new DataContext(System.Configuration.ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString);
+
+            DateTime dtStart = new DateTime();
+            DateTime dtEnd = new DateTime();
+
+            string dateStart = Request.QueryString["c"];
+            string dateEnd = Request.QueryString["c"];
+
+            if (dateStart == null || dateEnd == null)
+            {
+                dtEnd = DateTime.Now;
+                dtStart = dtEnd.AddDays(-3);
+            }
+
+            if (dateStart != null || dateEnd != null)
+            {
+                if (dateStart.Contains('d'))
+                {
+                    string[] parts = dateStart.Split('d');
+                    dateStart = parts[0];
+                    dateEnd = parts[1];
+                }
+
+                if (dateStart.Length > 0 || dateEnd.Length > 0)
+                {
+                    if (dateStart == "" && dateEnd == "")
+                    {
+                        dtEnd = DateTime.Now;
+                        dtStart = dtEnd.AddDays(-3);
+                    }
+                    else if (dateStart == "" && dateEnd != "")
+                    {
+                        dtEnd = Convert.ToDateTime(dateEnd);
+                        dtEnd.AddDays(1);
+                        dtStart = dtEnd.AddDays(-3);
+                    }
+                    else if (dateStart != "" && dateEnd == "")
+                    {
+                        dtStart = Convert.ToDateTime(dateStart);
+                        dtEnd = DateTime.Now;
+                    }
+                    else if (dateStart != "" && dateEnd != "")
+                    {
+                        dtStart = Convert.ToDateTime(dateStart);
+                        dtEnd = Convert.ToDateTime(dateEnd);
+                        dtEnd = dtEnd.AddDays(1);
+                    }
+
+
+                }
+            }
+
+            var viewModel = from x in db.RuleExecutionLogs
+                            where x.Created >= dtStart && x.Created <= dtEnd
+                            join x2 in db.messages on x.EmailId equals x2.ID
+                            join x3 in db.Rules on x.RuleId equals x3.RuleId
+                            select new LoggingViewModel { Rules = x, Emails = x2, RuleName = x3.RuleName };
+            foreach (var v in viewModel)
+            {
+                v.Emails.To = v.Emails.To.Replace(";", "; ");
+            }
+
+            return View(viewModel);
+        }
+    }
